@@ -1,10 +1,17 @@
 from scapy.all import *
 import sys
+import argparse
 
+def getHosts(file):
+	hosts = []
+	f = open(file)
+	for word in f.read().split():
+		hosts.append(word)
+	return hosts
 
 def TCPPing(host, port):
 	ans,unans=sr( IP(dst=host)/TCP(dport=port,flags="S"), timeout = 1)
-	ans.summary(lambda(s,r) : r.sprintf(":%IP.src% is alive"))
+	ans.summary(lambda(s,r) : r.sprintf("%IP.src% %port% is up"))
 	return
 
 def ICMPPing(host):
@@ -13,7 +20,7 @@ def ICMPPing(host):
 	return
 def UDPPing(host,port):
 	ans,unans=sr( IP(dst=host)/UDP(dport=port), timeout = 1)
-	ans.summary( lambda(s,r) : r.sprintf("%IP.src% is alive"))
+	ans.summary( lambda(s,r) : r.sprintf("%IP.src% %port% is up"))
 	return
 
 def runScan(host, port,scantype):
@@ -23,28 +30,50 @@ def runScan(host, port,scantype):
 		UDPPing(host,port)
 	elif scantype == 2:
 		ICMPPing(host)
+def multiScan(hostArray, port,scantype):
+	for host in hostArray:
+		runScan(host, port, scantype)
+	return
+	ping
 
-args = sys.argv
-place = 0
-arglength = len(args)
-host = "127.0.0.1"
+multiplehosts = 0
+
+parser = argparse.ArgumentParser(description='Preform simple port scanning')
+parser.add_argument('-H', dest='host', help='a single host to check')
+parser.add_argument('-P', dest='port', help='the port to scan')
+parser.add_argument('-F', dest='filename', help='the file to load hostnames from')
+parser.add_argument('-tcp', dest='scantype', action='store_const', const=0, help='send a tcp packet')
+parser.add_argument('-udp', dest='scantype', action='store_const', const=1, help='send a udp packet')
+parser.add_argument('-icmp', dest='scantype', action='store_const', const=2, help='send a icmp packet')
+
+
+args = parser.parse_args()
+
+hosts = []
 port = 0
 scantype = 0
-while place < arglength:
-	eval = args[place]
-	if eval == "-H":
-		place = place + 1
-		host = args[place]
-	elif eval =="-P":
-		place = place + 1
-		port = args[place]
-	elif eval.lower() == "tcp":
-		scantype = 0
-	elif eval.lower() == "udp":
-		scantype = 1
-	elif eval.lower() == "icmp":
-		scantype = 0
 
-	place = place + 1
 
-runScan(host,port, scantype)
+
+if args.host != None:
+	host = args.host
+
+	if args.port != 'None':
+		port = int(args.port)
+	if args.scantype != 'None':
+		scantype = args.scantype
+		print 'should not be here'
+	runScan(host, port,scantype)
+
+elif args.filename != 'None':
+	hosts = getHosts(args.filename)
+
+	if args.port != None:
+		port = int(args.port)
+	if args.scantype != 'None':
+		scantype = args.scantype
+	print port
+	multiScan(hosts, port, scantype) 
+	
+
+

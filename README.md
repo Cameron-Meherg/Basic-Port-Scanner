@@ -1,4 +1,5 @@
 # Basic-Port-Scanner
 For IT567
 
-Use the Scapy library for python
+Uses the Scapy library for python
+Uses argparse to manage command line arguments
