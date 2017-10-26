@@ -18,7 +18,8 @@ def TCPPing(host, port):
 
 def printResultArray(results):
 	for result in results:
-		print result
+		if result != None:
+			print result
 
 def printMultiHostResultArray(results):
 	for result in results:
@@ -45,6 +46,8 @@ def runScan(host, port,scantype):
 		return UDPPing(host,port)
 	elif scantype == 2:
 		return ICMPPing(host)
+	elif scantype == 3:
+		return traceRoute(host)
 
 def runPortScan(host, ports, scantype):
 	results = []
@@ -55,7 +58,6 @@ def runPortScan(host, ports, scantype):
 			results.append(UDPPing(host,port))
 		elif scantype == 2:
 			results.append(ICMPPing(host))
-	
 	return results
 
 def multiScan(hostArray, port,scantype):
@@ -72,7 +74,13 @@ def multiPortScan(hostArray,ports,scantype):
 	
 	return results
 
+def traceRoute(host):
 
+	res, unans = traceroute(host, maxttl = 15)
+	if res != None:
+		return res.show()
+	elif unans != None:
+		return unans.show()
 
 parser = argparse.ArgumentParser(description='Preform simple port scanning')
 parser.add_argument('-H', dest='host', help='a single host to check')
@@ -82,6 +90,7 @@ parser.add_argument('-F', dest='filename', help='the file to load hostnames from
 parser.add_argument('-tcp', dest='scantype', action='store_const', const=0, help='send a tcp packet')
 parser.add_argument('-udp', dest='scantype', action='store_const', const=1, help='send a udp packet')
 parser.add_argument('-icmp', dest='scantype', action='store_const', const=2, help='send a icmp packet')
+parser.add_argument('-trace', dest='scantype', action='store_const', const=3, help='send a icmp packet')
 
 
 args = parser.parse_args()
